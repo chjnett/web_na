@@ -251,7 +251,7 @@ function render() {
           <label for="nickname">PLAYER</label>
           <input id="nickname" name="nickname" value="나물" autocomplete="username">
           <label for="password">PASSWORD</label>
-          <input id="password" name="password" type="password" placeholder="자기" autocomplete="current-password" inputmode="text" required>
+          <input id="password" name="password" type="text" placeholder="자기" autocomplete="off" inputmode="text" required>
           <p class="login-error" role="alert">${loginError}</p>
           <button type="submit">[ START GAME ]</button>
         </form>
