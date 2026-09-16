@@ -252,8 +252,7 @@ button { font: inherit; }
 
 .eyebrow { margin: 0 0 7px; color: #9e150c; font: 17px/1 'Permanent Marker', cursive; }
 .login-card h1 { margin: 0; color: #1730ed; font: 55px/.85 'Permanent Marker', cursive; letter-spacing: -3px; transform: rotate(-2deg); }
-.login-copy { margin: 25px 0 20px; color: #4e3d27; font-size: 16px; }
-.login-card form { display: grid; text-align: left; }
+.login-card form { display: grid; margin-top: 28px; text-align: left; }
 .login-card label { margin: 11px 0 4px; color: #1730ed; font: 14px/1 'Permanent Marker', cursive; }
 .login-card input {
   width: 100%;

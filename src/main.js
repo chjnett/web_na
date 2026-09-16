@@ -223,8 +223,11 @@ function newGame() {
 function attemptLogin(event) {
   event.preventDefault();
   const passwordInput = document.querySelector('#password');
-  const password = String(passwordInput?.value || '').normalize('NFC').replace(/\s/g, '');
-  if (password === '자기') {
+  const password = String(passwordInput?.value || '')
+    .normalize('NFKD')
+    .replace(/[\s\u200B-\u200D\uFEFF]/g, '');
+  const expectedPassword = '자기'.normalize('NFKD');
+  if (password === expectedPassword) {
     sessionStorage.setItem('springfield-login', 'yes');
     isLoggedIn = true;
     loginError = '';
@@ -244,7 +247,6 @@ function render() {
         <div class="login-tiles" aria-hidden="true">${previewTiles}</div>
         <p class="eyebrow">WELCOME TO</p>
         <h1>SPRINGFIELD<br>TILES</h1>
-        <p class="login-copy">우리 둘만의 타일 게임에 입장하세요.</p>
         <form id="loginForm">
           <label for="nickname">PLAYER</label>
           <input id="nickname" name="nickname" value="나물" autocomplete="username">
