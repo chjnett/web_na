@@ -222,7 +222,8 @@ function newGame() {
 
 function attemptLogin(event) {
   event.preventDefault();
-  const password = new FormData(event.currentTarget).get('password');
+  const passwordInput = document.querySelector('#password');
+  const password = String(passwordInput?.value || '').normalize('NFC').replace(/\s/g, '');
   if (password === '자기') {
     sessionStorage.setItem('springfield-login', 'yes');
     isLoggedIn = true;
@@ -248,7 +249,7 @@ function render() {
           <label for="nickname">PLAYER</label>
           <input id="nickname" name="nickname" value="나물" autocomplete="username">
           <label for="password">PASSWORD</label>
-          <input id="password" name="password" type="password" placeholder="비밀번호" autocomplete="current-password" required>
+          <input id="password" name="password" type="password" placeholder="자기" autocomplete="current-password" inputmode="text" required>
           <p class="login-error" role="alert">${loginError}</p>
           <button type="submit">[ START GAME ]</button>
         </form>
