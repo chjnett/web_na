@@ -20,6 +20,12 @@ let selected;
 let bombMode;
 let notice;
 let finished;
+let dropping = new Set();
+let busy = false;
+let lovePopup = false;
+let loveTimer;
+let loginError = '';
+let isLoggedIn = sessionStorage.getItem('springfield-login') === 'yes';
 let best = Number(localStorage.getItem('springfield-best') || 0);
 let highest = Number(localStorage.getItem('springfield-highest') || 0);
 
@@ -132,8 +138,28 @@ function removeGroup(group, withBomb = false) {
   render();
 }
 
+function celebrateMatch(group) {
+  busy = true;
+  selected = [];
+  dropping = new Set(group.map(([r, c]) => `${r}:${c}`));
+  notice = 'MATCH FOUND!';
+  render();
+
+  setTimeout(() => {
+    dropping = new Set();
+    lovePopup = true;
+    busy = false;
+    removeGroup(group);
+    clearTimeout(loveTimer);
+    loveTimer = setTimeout(() => {
+      lovePopup = false;
+      render();
+    }, 1500);
+  }, 430);
+}
+
 function clickTile(row, col) {
-  if (finished || topTile(row, col) === null) return;
+  if (finished || busy || topTile(row, col) === null) return;
   if (bombMode) {
     bombs--;
     bombMode = false;
@@ -150,8 +176,7 @@ function clickTile(row, col) {
   }
 
   if (selected.some(([r, c]) => r === row && c === col)) {
-    notice = '';
-    removeGroup(group);
+    celebrateMatch(group);
   } else {
     selected = group;
     notice = `${group.length} TILE MATCH — CLICK AGAIN`;
@@ -189,10 +214,51 @@ function newGame() {
   bombMode = false;
   notice = '';
   finished = false;
+  dropping = new Set();
+  busy = false;
+  lovePopup = false;
   render();
 }
 
+function attemptLogin(event) {
+  event.preventDefault();
+  const password = new FormData(event.currentTarget).get('password');
+  if (password === '자기') {
+    sessionStorage.setItem('springfield-login', 'yes');
+    isLoggedIn = true;
+    loginError = '';
+    render();
+  } else {
+    loginError = '비밀번호가 달라요. 다시 생각해 봐요!';
+    render();
+    document.querySelector('#password')?.focus();
+  }
+}
+
 function render() {
+  if (!isLoggedIn) {
+    const previewTiles = TILE_TYPES.slice(0, 5).map(src => `<span><img src="${src}" alt=""></span>`).join('');
+    app.innerHTML = `<main class="login-page">
+      <section class="login-card ${loginError ? 'has-error' : ''}">
+        <div class="login-tiles" aria-hidden="true">${previewTiles}</div>
+        <p class="eyebrow">WELCOME TO</p>
+        <h1>SPRINGFIELD<br>TILES</h1>
+        <p class="login-copy">우리 둘만의 타일 게임에 입장하세요.</p>
+        <form id="loginForm">
+          <label for="nickname">PLAYER</label>
+          <input id="nickname" name="nickname" value="나물" autocomplete="username">
+          <label for="password">PASSWORD</label>
+          <input id="password" name="password" type="password" placeholder="비밀번호" autocomplete="current-password" required>
+          <p class="login-error" role="alert">${loginError}</p>
+          <button type="submit">[ START GAME ]</button>
+        </form>
+        <p class="login-note">A LITTLE PUZZLE MADE WITH LOVE ♥</p>
+      </section>
+    </main>`;
+    document.querySelector('#loginForm').onsubmit = attemptLogin;
+    return;
+  }
+
   const selectedKeys = new Set(selected.map(([r, c]) => `${r}:${c}`));
   const tiles = board.map((row, r) => row.map((stack, c) => {
     const type = topTile(r, c);
@@ -200,7 +266,8 @@ function render() {
       'tile',
       stack.length === 0 ? 'is-empty' : '',
       stack.length === 2 ? 'is-stacked' : '',
-      selectedKeys.has(`${r}:${c}`) ? 'is-selected' : ''
+      selectedKeys.has(`${r}:${c}`) ? 'is-selected' : '',
+      dropping.has(`${r}:${c}`) ? 'is-dropping' : ''
     ].filter(Boolean).join(' ');
     return `<button class="${classes}" data-row="${r}" data-col="${c}" ${type === null ? 'disabled' : ''} aria-label="타일 ${r + 1}-${c + 1}">
       ${type === null ? '' : `<img src="${TILE_TYPES[type]}" alt="" draggable="false">`}
@@ -246,6 +313,10 @@ function render() {
 
   ${finished ? `<div class="overlay end-screen"><section class="help-card"><h2>${finished === 'win' ? 'YOU WIN!' : 'GAME OVER'}</h2><p>FINAL SCORE: ${score.toLocaleString()}</p><button id="playAgain">[ PLAY AGAIN ]</button></section></div>` : ''}`;
 
+  if (lovePopup) {
+    app.insertAdjacentHTML('beforeend', `<div class="love-pop" role="dialog" aria-live="polite"><div class="love-pop-card"><span class="heart">♥</span><p>MATCH FOUND!</p><h2>나물이 사랑하구나</h2><button id="closeLove">[ 좋아! ]</button></div></div>`);
+  }
+
   document.querySelectorAll('.tile:not(.is-empty)').forEach(tile => {
     tile.onclick = () => clickTile(Number(tile.dataset.row), Number(tile.dataset.col));
   });
@@ -256,6 +327,11 @@ function render() {
   document.querySelector('#helpButton').onclick = () => document.querySelector('#helpOverlay').classList.remove('hidden');
   document.querySelector('#closeHelp').onclick = () => document.querySelector('#helpOverlay').classList.add('hidden');
   document.querySelector('#playAgain')?.addEventListener('click', newGame);
+  document.querySelector('#closeLove')?.addEventListener('click', () => {
+    clearTimeout(loveTimer);
+    lovePopup = false;
+    render();
+  });
 }
 
 newGame();
