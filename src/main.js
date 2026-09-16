@@ -317,7 +317,7 @@ function render() {
   ${finished ? `<div class="overlay end-screen"><section class="help-card"><h2>${finished === 'win' ? 'YOU WIN!' : 'GAME OVER'}</h2><p>FINAL SCORE: ${score.toLocaleString()}</p><button id="playAgain">[ PLAY AGAIN ]</button></section></div>` : ''}`;
 
   if (lovePopup) {
-    app.insertAdjacentHTML('beforeend', `<div class="love-pop" role="dialog" aria-live="polite"><div class="love-pop-card"><span class="heart">♥</span><p>MATCH FOUND!</p><h2>나물이 사랑하구나</h2><button id="closeLove">[ 좋아! ]</button></div></div>`);
+    app.insertAdjacentHTML('beforeend', `<div class="love-pop" role="dialog" aria-live="polite"><div class="love-pop-card"><span class="heart">♥</span><p>MATCH FOUND!</p><h2>나물이 사랑하구나</h2></div></div>`);
   }
 
   document.querySelectorAll('.tile:not(.is-empty)').forEach(tile => {
@@ -330,11 +330,6 @@ function render() {
   document.querySelector('#helpButton').onclick = () => document.querySelector('#helpOverlay').classList.remove('hidden');
   document.querySelector('#closeHelp').onclick = () => document.querySelector('#helpOverlay').classList.add('hidden');
   document.querySelector('#playAgain')?.addEventListener('click', newGame);
-  document.querySelector('#closeLove')?.addEventListener('click', () => {
-    clearTimeout(loveTimer);
-    lovePopup = false;
-    render();
-  });
 }
 
 newGame();
